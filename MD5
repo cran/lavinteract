@@ -1,0 +1,14 @@
+faa06fb419d603fa47519af12e1b0bde *DESCRIPTION
+123d4e60915a8837b8ef0c39970129dc *NAMESPACE
+0015fed8724da9756e6d18e216d766de *NEWS.md
+a01803a60bd296a5a674033796ac76c4 *R/lav_slopes.R
+311f320013b0523a591ea7dc0db85dfe *R/lav_vif.R
+02e09f7f7331ae03802ba55bc9af9e29 *R/lavinteract-package.R
+8d3dda4a0aa410fb06492e909c73ca5c *R/utils.R
+927b8803928bbadf71c22f6153158b60 *R/zzz.R
+ac13c45e7125a3fd92ca681582ddc295 *inst/CITATION
+0f79475f91a7715bffb278bebcba012a *inst/WORDLIST
+5b613745a83dd766d5a14ed7f813b9c5 *man/figures/logo.png
+297c1ed7a51505bd1401d92db790400c *man/lav_slopes.Rd
+ecc14a7b6dc304943f9abfdea9892dac *man/lav_vif.Rd
+9a9bed6ad23b43bce3d1d17e21e944b6 *man/lavinteract.Rd

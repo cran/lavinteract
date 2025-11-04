@@ -1,0 +1,8 @@
+bibentry(
+  bibtype = "Manual",
+  title   = "statioVAR: Trend Removal for Vector Autoregressive Workflows",
+  author  = person("Giuseppe", "Corbelli"),
+  year    = "2025",
+  note    = "R package version 0.1.1",
+  url     = "https://github.com/g-corbelli/statioVAR"
+)
