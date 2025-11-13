@@ -55,7 +55,7 @@
 #' @param legend.title Character. Legend title; if \code{NULL}, the legend shows only levels (default: NULL).
 #' @param colors Character vector. Colors for lines and ribbons; named vector recommended with names matching \code{modx.labels} (default: Okabe-Ito palette).
 #' @param line.size Numeric > 0. Line width (default: 0.80).
-#' @param alpha Numeric in \code{(0,1)}. Ribbon opacity (default 0.20).
+#' @param alpha Numeric in (0,1). Ribbon opacity (default 0.20).
 #' @param table Logical. Print APA-style interaction test and simple-slopes table (default: \code{TRUE}).
 #' @param digits Integer \code{>= 0}. Decimal digits in printed output (default: 2).
 #' @param modx_n_unique_cutoff Integer \code{>= 1}. Threshold for treating a numeric moderator

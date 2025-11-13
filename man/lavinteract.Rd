@@ -15,6 +15,7 @@ The functions are:
 \itemize{
   \item \code{\link{lav_slopes}}: simple slopes and interaction plots from a fitted 'lavaan' model.
   \item \code{\link{lav_vif}}: variance inflation factors for structural predictors with measurement preserved.
+  \item \code{\link{lav_cv}}: repeated holdout (Monte Carlo) cross-validation of R^2 for SEM outcomes.
 }
 }
 \section{Note}{
@@ -33,7 +34,7 @@ Useful links:
 
 }
 \author{
-Giuseppe Corbelli (<giuseppe.corbelli@uniroma1.it>, or <giuseppe.corbelli@uninettunouniversity.net>)
+Giuseppe Corbelli (<giuseppe.corbelli@uninettunouniversity.net>)
 }
 \keyword{R2}
 \keyword{SEM}

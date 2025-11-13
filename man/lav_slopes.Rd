@@ -68,7 +68,7 @@ uses observed range in \code{data} when available, else \code{c(-2, 2)}.}
 
 \item{line.size}{Numeric > 0. Line width (default: 0.80).}
 
-\item{alpha}{Numeric in \code{(0,1)}. Ribbon opacity (default 0.20).}
+\item{alpha}{Numeric in (0,1). Ribbon opacity (default 0.20).}
 
 \item{table}{Logical. Print APA-style interaction test and simple-slopes table (default: \code{TRUE}).}
 

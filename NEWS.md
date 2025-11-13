@@ -2,8 +2,8 @@
 
 ## Version 0.1.0
 
-* Initial release:
-  - `lav_slopes()`: computes conditional (simple) slopes from a fitted 'lavaan' model.
+* Initial release.
+* `lav_slopes()`: computes conditional (simple) slopes from a fitted 'lavaan' model.
   
 ## Version 0.1.1
 
@@ -19,3 +19,15 @@
 ## Version 0.2.2
 
 * CRAN compliance: documented S3 method args, fixed Rd usage, and made R code ASCII-only.
+
+## Version 0.3.2
+
+* `lav_cv()`: repeated holdout (Monte Carlo) cross-validation of R^2 for 'lavaan' models.
+
+## Version 0.3.3
+
+* `lav_cv()`: CRAN-requested fixes for ASCII-only code, explicit external function calls, and S3 method documentation.
+
+## Version 0.3.4
+
+* `lav_cv()`: Further CRAN-requested fixes for ASCII-only code and explicit external function calls.
