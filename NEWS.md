@@ -30,4 +30,9 @@
 
 ## Version 0.3.4
 
-* `lav_cv()`: Further CRAN-requested fixes for ASCII-only code and explicit external function calls.
+* `lav_cv()`: further CRAN-requested fixes for ASCII-only code and explicit external function calls.
+
+## Version 0.3.5
+
+* Fixed CITATION document.  
+ 

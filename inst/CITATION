@@ -1,8 +1,8 @@
 bibentry(
   bibtype = "Manual",
-  title   = "statioVAR: Trend Removal for Vector Autoregressive Workflows",
+  title   = "lavinteract: Post-Estimation Utilities for 'lavaan' Fitted Models",
   author  = person("Giuseppe", "Corbelli"),
   year    = "2025",
-  note    = "R package version 0.1.1",
+  note    = "R package version 0.3.5",
   url     = "https://github.com/g-corbelli/statioVAR"
 )
