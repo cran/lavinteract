@@ -1,7 +1,7 @@
 Package: lavinteract
 Type: Package
 Title: Post-Estimation Utilities for 'lavaan' Fitted Models
-Version: 0.3.5
+Version: 0.4.5
 Authors@R: 
     person(
       "Giuseppe", "Corbelli",
@@ -21,8 +21,8 @@ NeedsCompilation: no
 Maintainer: Giuseppe Corbelli <giuseppe.corbelli@uninettunouniversity.net>
 Config/testthat/edition: 3
 RoxygenNote: 7.3.2
-Packaged: 2026-01-21 07:28:20 UTC; giuse
+Packaged: 2026-02-10 22:46:46 UTC; giuse
 Author: Giuseppe Corbelli [aut, cre] (ORCID:
     <https://orcid.org/0000-0002-2864-3548>)
 Repository: CRAN
-Date/Publication: 2026-01-21 07:50:13 UTC
+Date/Publication: 2026-02-10 23:00:02 UTC

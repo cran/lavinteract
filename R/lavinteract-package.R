@@ -9,6 +9,7 @@
 #'   \item \code{\link{lav_slopes}}: simple slopes and interaction plots from a fitted 'lavaan' model.
 #'   \item \code{\link{lav_vif}}: variance inflation factors for structural predictors with measurement preserved.
 #'   \item \code{\link{lav_cv}}: repeated holdout (Monte Carlo) cross-validation of R^2 for SEM outcomes.
+#'   \item \code{\link{lav_fdr}}: false discovery rate correction for selected 'lavaan' parameter p-values.
 #' }
 #'
 #' @section Note:
@@ -22,5 +23,5 @@
 #' @docType package
 #' @name lavinteract
 #' @aliases lavinteract-package lavinteract
-#' @keywords SEM lavaan moderation interactions diagnostics multicollinearity plotting R2 
+#' @keywords SEM lavaan moderation interactions diagnostics multicollinearity plotting R2 multipletesting validation 
 "_PACKAGE"

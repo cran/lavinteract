@@ -35,4 +35,7 @@
 ## Version 0.3.5
 
 * Fixed CITATION document.  
- 
+
+## Version 0.4.5
+
+* `lav_fdr()`: false discovery rate (Benjamini-Yekutieli by default) correction for selected 'lavaan' parameter p-values. 
