@@ -39,3 +39,7 @@
 ## Version 0.4.5
 
 * `lav_fdr()`: false discovery rate (Benjamini-Yekutieli by default) correction for selected 'lavaan' parameter p-values. 
+
+## Version 0.4.6
+
+* `lav_fdr()`: fixed table appearance for long predictor or outcome names.   

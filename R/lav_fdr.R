@@ -211,19 +211,21 @@ print.lav_fdr <- function(x, ...) {
   for (g in groups) {
     gname <- if (length(gl) && !is.na(g) && g <= length(gl)) gl[g] else paste0("Group ", g)
     sub <- tbl[tbl$group == g, , drop = FALSE]
+    par_texts <- paste(sub$lhs, sub$op, sub$rhs)
+    par_width <- max(nchar(par_texts) + 2, 9)
     
     cat("\nFDR-corrected parameters\n")
     cat(sprintf("Ops: %s | Family: %s | Method: %s | alpha: %.3f | %s\n",
                 st$ops, st$family, st$method, st$alpha, gname))
     
-    dash_n <- (if (is.null(std_name)) 76 else 88) + 12
+    dash_n <- (if (is.null(std_name)) 76 else 88) + 12 + (par_width - 30)
     
     cat(rep("-", dash_n), "\n", sep = "")
     if (is.null(std_name)) {
-      cat(sprintf("%-30s %10s %8s %8s %10s %10s\n",
+      cat(sprintf("%-*s %10s %8s %8s %10s %10s\n", par_width,
                   "Parameter", "est", "SE", "z", "p", "p_FDR"))
     } else {
-      cat(sprintf("%-30s %10s %8s %8s %10s %10s %10s\n",
+      cat(sprintf("%-*s %10s %8s %8s %10s %10s %10s\n", par_width,
                   "Parameter", "est", "SE", "z", "p", "p_FDR", std_name))
     }
     cat(rep("-", dash_n), "\n", sep = "")
@@ -232,7 +234,7 @@ print.lav_fdr <- function(x, ...) {
       par_txt <- paste(sub$lhs[i], sub$op[i], sub$rhs[i])
       flag <- if (isTRUE(sub$sig_fdr[i])) "*" else ""
       if (is.null(std_name)) {
-        cat(sprintf("%-30s %10s %8s %8s %10s %10s %s\n",
+        cat(sprintf("%-*s %10s %8s %8s %10s %10s %s\n", par_width,
                     par_txt,
                     fmt(sub$est[i]),
                     fmt(sub$se[i]),
@@ -241,7 +243,7 @@ print.lav_fdr <- function(x, ...) {
                     fmtp(sub$p_fdr[i]),
                     flag))
       } else {
-        cat(sprintf("%-30s %10s %8s %8s %10s %10s %10s %s\n",
+        cat(sprintf("%-*s %10s %8s %8s %10s %10s %10s %s\n", par_width,
                     par_txt,
                     fmt(sub$est[i]),
                     fmt(sub$se[i]),
