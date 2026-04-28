@@ -24,7 +24,7 @@ lav_slopes(
   line.size = 0.80,
   alpha = 0.20,
   table = TRUE,
-  digits = 2,
+  digits = 3L,
   modx_n_unique_cutoff = 4L,
   return_data = FALSE
 )
@@ -40,23 +40,35 @@ lav_slopes(
 
 \item{pred}{Character. Name of the focal predictor whose simple slopes are probed (required).}
 
-\item{modx}{Character. Name of the moderator (required).}
+\item{modx}{Character. Name of the moderator. The moderator must appear in
+the fitted model as a single numeric variable. General nominal moderators
+with more than two categories are not supported.}
 
 \item{interaction}{Character. Name of the product term in \code{fit} (e.g., \code{"X_Z"}) (required).}
 
-\item{data}{\code{data.frame}. Raw data. If \code{NULL}, the function tries to pull
-data from \code{fit} via \code{lavInspect}.}
+\item{data}{\code{data.frame}. Optional raw data (not needed, retained for backward compatibility). 
+The function automatically recovers observed data from \code{fit} when needed.}
 
-\item{modx.values}{Numeric or character vector. Values or levels of the moderator
-at which to compute slopes; derived automatically when \code{NULL}.}
+\item{modx.values}{Numeric vector of moderator values at which to compute
+simple slopes. If \code{NULL} and \code{modx} is observed and numeric, the
+function uses mean minus 1 SD, the mean, and mean plus 1 SD for moderators
+with more than \code{modx_n_unique_cutoff} unique values, and otherwise
+uses the observed numeric values as discrete probe points. If \code{modx}
+is latent in a single-group model, the function uses the estimated latent
+mean minus 1 latent SD, the latent mean, and the latent mean plus 1 latent
+SD.}
 
-\item{modx.labels}{Character vector. Legend/table labels for \code{modx.values}
-(default: the character form of \code{modx.values}).}
+\item{modx.labels}{Character vector. Legend and table labels for \code{modx.values}.
+By default, the labels are \code{c("-1 SD", "Mean", "+1 SD")} when values are derived as 
+mean plus or minus 1 SD, and \code{as.character(modx.values)} otherwise.}
 
-\item{pred.range}{Numeric length-2. Range \code{c(min, max)} for the x-axis;
-uses observed range in \code{data} when available, else \code{c(-2, 2)}.}
+\item{pred.range}{Numeric vector of length 2. Range \code{c(min, max)} for the x-axis
+for the focal predictor. If \code{NULL} and \code{pred} is observed, the observed 
+range recovered from \code{fit} is used. If \code{pred} is latent in a single-group model, 
+the function uses the estimated latent mean minus 2 latent SD and the latent mean plus 2 
+latent SD. Otherwise, \code{c(-2, 2)} is used.}
 
-\item{conf.level}{Numeric in (0,1). Confidence level for CIs and ribbons (default: 0.95).}
+\item{conf.level}{Numeric in (0,1). Confidence level for Wald confidence intervals and ribbons (default: 0.95).}
 
 \item{x.label}{Character. X-axis label (default: \code{pred}).}
 
@@ -72,7 +84,7 @@ uses observed range in \code{data} when available, else \code{c(-2, 2)}.}
 
 \item{table}{Logical. Print APA-style interaction test and simple-slopes table (default: \code{TRUE}).}
 
-\item{digits}{Integer \code{>= 0}. Decimal digits in printed output (default: 2).}
+\item{digits}{Integer \code{>= 0}. Decimal digits in printed output (default: 3).}
 
 \item{modx_n_unique_cutoff}{Integer \code{>= 1}. Threshold for treating a numeric moderator
 as continuous and using mean ± SD (default: 4).}
@@ -86,7 +98,7 @@ as continuous and using mean ± SD (default: 4).}
 \item{object}{A 'lav_slopes' object.}
 }
 \value{
-A list with elements:
+A list of class \code{"lav_slopes"} with elements:
 \describe{
   \item{\code{plot}}{\code{ggplot} object with lines and confidence ribbons.}
   \item{\code{slope_table}}{Data frame with moderator levels, simple slopes, SE, z, and CI.}
@@ -96,21 +108,30 @@ A list with elements:
 \description{
 Computes conditional (simple) slopes of a focal predictor across values
 of a moderator from a fitted 'lavaan' model that includes their explicit 
-product term. Plots predicted lines with Wald confidence ribbons, and print 
+product term. Plots predicted lines with Wald confidence ribbons and prints
 an APA-style test of the interaction for easy reporting and interpretation,
-plus a simple-slopes table.
+together with a simple slopes table.
 }
 \details{
-The model should include a main effect for the predictor, a main effect for the moderator,
-and their product term. The simple slope of the predictor at a given moderator value
-combines the predictor main effect with the interaction term. The moderator can 
-be continuous or categorical. Standard errors use the delta method with the 
-model covariance matrix of the estimates.
+The model should include a main effect for the predictor, a main effect for
+the moderator, and one explicit product term between them.
+
+The moderator must enter the fitted model as a single numeric
+variable, which may be continuous, a binary observed moderator coded as a
+single numeric dummy variable, an observed numeric moderator with a small
+number of values treated as discrete probe points, or a latent moderator
+treated as a single continuous latent variable. 
+
+Standard errors use the delta method with the model covariance matrix of the
+estimates. When moderator values are derived automatically for latent
+moderators, probe points are based on the estimated latent mean and
+model-implied latent standard deviation.
 }
 \section{Notes}{
 
-Estimates are unstandardized; a standardized beta for the interaction is also reported
-for reference. Wald tests assume large-sample normality of estimates.
+Estimates are unstandardized; a standardized coefficient for the interaction is
+also reported for reference. Wald tests assume large-sample normality of the
+parameter estimates. Multigroup fitted models are not supported.
 }
 
 \examples{
@@ -121,10 +142,26 @@ dataset <- data.frame(Y, X, Z, X_Z)
 fit <- lavaan::sem("Y ~ X + Z + X_Z", data = dataset)
 lav_slopes(
 fit = fit, 
-data = dataset,
 outcome = "Y", 
 pred = "X", 
 modx = "Z", 
 interaction = "X_Z")
 
+}
+\references{
+Aiken, L. S., & West, S. G. (1991). \emph{Multiple regression: Testing and
+interpreting interactions}. Sage.
+
+Preacher, K. J., Curran, P. J., & Bauer, D. J. (2006). Computational tools
+for probing interactions in multiple linear regression, multilevel modeling,
+and latent curve analysis. \emph{Journal of Educational and Behavioral
+Statistics}, \emph{31}(4), 437-448.
+\doi{10.3102/10769986031004437}
+
+Rogosa, D. (1980). Comparing nonparallel regression lines.
+\emph{Psychological Bulletin}, \emph{88}(2), 307-321.
+\doi{10.1037/0033-2909.88.2.307}
+}
+\seealso{
+\code{\link{lav_jn}} for Johnson-Neyman regions of significance.
 }

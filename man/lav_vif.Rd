@@ -21,7 +21,8 @@ lav_vif(
 
 \item{data}{Optional. The data frame used to fit \code{fit}. If \code{NULL},
 the function attempts to extract the data from \code{fit} via
-\code{lavInspect(fit, "data")} then \code{"data.original"}.}
+\code{lavInspect(fit, "data")}. For multigroup models, grouped data are
+reconstructed into a single data frame when possible.}
 
 \item{quiet}{Logical. If \code{TRUE} suppresses lavaan refit messages.}
 
@@ -41,7 +42,7 @@ A list with:
   \item \code{vif_table}: data.frame with columns
         \code{outcome}, \code{predictor}, \code{group}, \code{r2_predictor},
         \code{vif}, \code{k_predictors}.
-  \item \code{outcome_r2}: data.frame with R^2 per eligible endogenous
+  \item \code{outcome_r2}: data.frame with \eqn{R^2} per eligible endogenous
         \code{outcome} and \code{group} from the original \code{fit}.
 }
 }
@@ -49,33 +50,42 @@ A list with:
 Compute VIF for each predictor that appears in structural regressions
 with two or more predictors, refitting the necessary sub-models so that
 latent predictors are handled at the latent level (i.e., with their original
-measurement models). It returns also the R^2 of each eligible endogenous variable 
+measurement models). It returns also the \eqn{R^2} of each eligible endogenous variable 
 from the original fit for context.
 }
 \details{
-Each auxiliary refitted model:
-\itemize{
-  \item includes the original measurement model for any latent predictors;
-  \item includes any residual covariances among those indicators that were
-        specified in the original model;
-  \item regresses the focal predictor on the remaining predictors at the latent 
-  level when applicable.
-}
+Each auxiliary refitted model includes the measurement structure for latent 
+predictors, rebuilt from the original model syntax, together with observed 
+residual covariances among the involved indicators when specified in the 
+original model. Then, regresses the focal predictor on the remaining predictors 
+at the latent level when applicable.
 
-VIF_i = 1 / (1 - R^2_i) generalizes VIF to SEM while respecting 
+\eqn{\mathrm{VIF}_i = 1 / (1 - R_i^2)} generalizes VIF to SEM while respecting 
 measurement models.
   
 The function reuses the estimator, missing-data handling, and several options 
-from \code{fit}.
+from \code{fit}. 
+In multigroup models, VIF is computed separately within each group. 
+Higher-order latent predictors are supported by recursively rebuilding
+lower-order measurement blocks in the auxiliary refitted models.
 }
 \examples{
 set.seed(42)
 x1 <- rnorm(100); x2 <- 0.85*x1 + rnorm(100, sd = sqrt(1 - 0.85^2)); x3 <- rnorm(100)
-y  <- 0.5*x1 + 0.3*x2 + 0.1*x3 + rnorm(100, sd = 0.7)
+y <- 0.5*x1 + 0.3*x2 + 0.1*x3 + rnorm(100, sd = 0.7)
 dataset <- data.frame(y, x1, x2, x3)
 fit <- lavaan::sem("y ~ x1 + x2 + x3", data = dataset)
 lav_vif(
 fit = fit,
 data = dataset)
 
+}
+\references{
+Fox, J., & Monette, G. (1992). Generalized collinearity diagnostics.
+\emph{Journal of the American Statistical Association}, \emph{87}(417),
+178-183. \doi{10.1080/01621459.1992.10475190}
+
+Belsley, D. A., Kuh, E., & Welsch, R. E. (1980).
+\emph{Regression diagnostics: Identifying influential data and sources of
+collinearity}. Wiley.
 }

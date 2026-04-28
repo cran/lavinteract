@@ -4,7 +4,7 @@
 \alias{lav_cv}
 \alias{print.lav_cv}
 \alias{summary.lav_cv}
-\title{Repeated holdout (Monte Carlo) cross-validation of R^2 for structural equation models ('lavaan' objects)}
+\title{Repeated holdout (Monte Carlo) cross-validation of \eqn{R^2} for structural equation models ('lavaan' objects)}
 \usage{
 lav_cv(
   fit,
@@ -40,7 +40,7 @@ lav_cv(
 
 \item{digits}{Integer. Number of digits to print in summaries (default: 3).}
 
-\item{plot}{Logical. Show convergence plots of the running mean R^2 per outcome (default: TRUE).}
+\item{plot}{Logical. Show convergence plots of the running mean \eqn{R^2} per outcome (default: TRUE).}
 
 \item{tol}{Numeric. Tolerance for the auto-stop rule on the running mean (default: 0.001).}
 
@@ -48,7 +48,7 @@ lav_cv(
 
 \item{max_times}{Integer. Maximum number of splits when \code{times} = "auto" (default: 3000).}
 
-\item{min_r2_for_pct}{Numeric in (0,1). Minimum in-sample R^2 required to compute percent drop; below this, \%_drop is set to NA (default: 0.05).}
+\item{min_r2_for_pct}{Numeric in (0,1). Minimum in-sample \eqn{R^2} required to compute percent drop; below this, \%_drop is set to NA (default: 0.05).}
 
 \item{x}{A 'lav_cv' object.}
 
@@ -63,14 +63,14 @@ A list with class 'lav_cv' and elements:
     \code{outcome}, \code{type} ("observed" or "latent"),
     \code{r2_in}, \code{r2_cv_mean}, \code{r2_cv_median}, \code{r2_cv_sd},
     \code{drop_mean_pct}, \code{drop_med_pct}, \code{splits_used}.}
-  \item{\code{split_matrix}}{Matrix of split-wise test-set R^2 values (rows = splits, columns = outcomes).}
+  \item{\code{split_matrix}}{Matrix of split-wise test-set \eqn{R^2} values (rows = splits, columns = outcomes).}
   \item{\code{times}}{Character or integer indicating the number of splits used (e.g., \code{"auto(534)"} or \code{500}).}
   \item{\code{train_prop}}{Numeric. Training proportion used in each split.}
   \item{\code{N}}{Integer. Number of rows in the input data.}
   \item{\code{seed}}{Integer. Random seed used to generate the splits.}
   \item{\code{tol}}{Numeric. Tolerance used by the auto-stop rule.}
   \item{\code{window}}{Integer. Trailing window size for the auto-stop rule.}
-  \item{\code{min_r2_for_pct}}{Numeric. Minimum in-sample R^2 required to compute percent drop.}
+  \item{\code{min_r2_for_pct}}{Numeric. Minimum in-sample \eqn{R^2} required to compute percent drop.}
   \item{\code{call}}{\code{match.call()} of the function call.}
   \item{\code{digits}}{Integer. Default number of digits for printing.}
 }
@@ -82,7 +82,7 @@ leave-group-out CV). At each repetition, the model is refitted on a random
 training subset and evaluated on a disjoint test subset.
 }
 \details{
-For observed outcomes, R^2 is computed by comparing test-set observed values
+For observed outcomes, \eqn{R^2} is computed by comparing test-set observed values
 with predictions obtained by applying the training-set structural coefficients
 to the test-set predictors.
 
@@ -91,25 +91,24 @@ Factor scores for the outcome are first computed in the test set using the
 measurement model learned on the training set; these scores serve as the
 outcome values. Predictions are then formed by applying the training-set
 structural coefficients to the test-set predictors (including factor scores
-for any latent predictors). R^2 is computed by comparing the test-set factor
+for any latent predictors). \eqn{R^2} is computed by comparing the test-set factor
 scores of the outcome with these predicted scores.
 
-The in-sample baseline R^2 is computed on the full dataset using the same
+The in-sample baseline \eqn{R^2} is computed on the full dataset using the same
 metric as in cross-validation: observed outcomes use observed-versus-predicted
-R^2; latent outcomes use score-versus-predicted-score R^2.
+\eqn{R^2}; latent outcomes use score-versus-predicted-score R^2.
 
-By default, repetitions continue until the running mean R^2 for each outcome
+By default, repetitions continue until the running mean \eqn{R^2} for each outcome
 stabilizes within a specified tolerance over a trailing window of successful
 splits, or until a maximum number of splits is reached.
 
-The summary table reports the in-sample baseline R^2, the median cross-validated
-R^2, its standard deviation, and the percent drop (baseline vs. median CV) with
+The summary table reports the in-sample baseline \eqn{R^2}, the median cross-validated
+\eqn{R^2}, its standard deviation, and the percent drop (baseline vs. median CV) with
 heuristic threshold markers. The percent drop is suppressed when the in-sample
-R^2 is very small.
+\eqn{R^2} is very small.
 }
 \examples{
-\dontshow{if (requireNamespace("lavaan", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-library("lavaan")
+set.seed(42)
 model <- "
 ind60 =~ x1 + x2 + x3
 dem60 =~ y1 + y2 + y3 + y4
@@ -127,24 +126,34 @@ data = lavaan::PoliticalDemocracy,
 std.lv = TRUE, 
 estimator = "MLR", 
 meanstructure = TRUE)
-  
 result <- lav_cv(
 fit = fit, 
 data = lavaan::PoliticalDemocracy, 
 times = 5)
 print(result)
-\dontshow{\}) # examplesIf}
+
 }
 \references{
-Cudeck, R., & Browne, M. W. (1983). Cross-Validation Of Covariance Structures. Multivariate Behavioral Research, 18(2), 147-167. \doi{10.1207/s15327906mbr1802_2}
+Cudeck, R., & Browne, M. W. (1983). Cross-validation of covariance
+structures. \emph{Multivariate Behavioral Research}, \emph{18}(2), 147-167.
+\doi{10.1207/s15327906mbr1802_2}
 
-Hastie, T., Friedman, J., & Tibshirani, R. (2001). The Elements of Statistical Learning. In Springer Series in Statistics. Springer New York. \doi{10.1007/978-0-387-21606-5} 
-   
-Kvalseth, T. O. (1985). Cautionary Note about R2. The American Statistician, 39(4), 279-285. \doi{10.1080/00031305.1985.10479448}   
-   
-Shmueli, G. (2010). To Explain or to Predict? Statistical Science, 25(3). \doi{10.1214/10-sts330}
- 
-Yarkoni, T., & Westfall, J. (2017). Choosing Prediction Over Explanation in Psychology: Lessons From Machine Learning. Perspectives on Psychological Science, 12(6), 1100-1122. \doi{10.1177/1745691617693393}
+Hastie, T., Tibshirani, R., & Friedman, J. (2001). \emph{The elements of
+statistical learning: Data mining, inference, and prediction}. Springer.
+\doi{10.1007/978-0-387-21606-5}
+
+Kvålseth, T. O. (1985). Cautionary note about \eqn{R^2}.
+\emph{The American Statistician}, \emph{39}(4), 279-285.
+\doi{10.1080/00031305.1985.10479448}
+
+Shmueli, G. (2010). To explain or to predict?
+\emph{Statistical Science}, \emph{25}(3), 289-310.
+\doi{10.1214/10-STS330}
+
+Yarkoni, T., & Westfall, J. (2017). Choosing prediction over explanation in
+psychology: Lessons from machine learning. \emph{Perspectives on
+Psychological Science}, \emph{12}(6), 1100-1122.
+\doi{10.1177/1745691617693393}
 }
 \seealso{
 \code{\link[lavaan]{sem}}, \code{\link[lavaan]{lavPredict}},

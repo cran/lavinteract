@@ -2,15 +2,23 @@
 #'
 #' Computes conditional (simple) slopes of a focal predictor across values
 #' of a moderator from a fitted 'lavaan' model that includes their explicit 
-#' product term. Plots predicted lines with Wald confidence ribbons, and print 
+#' product term. Plots predicted lines with Wald confidence ribbons and prints
 #' an APA-style test of the interaction for easy reporting and interpretation,
-#' plus a simple-slopes table. 
+#' together with a simple slopes table.
 #' 
-#' The model should include a main effect for the predictor, a main effect for the moderator,
-#' and their product term. The simple slope of the predictor at a given moderator value
-#' combines the predictor main effect with the interaction term. The moderator can 
-#' be continuous or categorical. Standard errors use the delta method with the 
-#' model covariance matrix of the estimates. 
+#' The model should include a main effect for the predictor, a main effect for
+#' the moderator, and one explicit product term between them.
+#' 
+#' The moderator must enter the fitted model as a single numeric
+#' variable, which may be continuous, a binary observed moderator coded as a
+#' single numeric dummy variable, an observed numeric moderator with a small
+#' number of values treated as discrete probe points, or a latent moderator
+#' treated as a single continuous latent variable. 
+#' 
+#' Standard errors use the delta method with the model covariance matrix of the
+#' estimates. When moderator values are derived automatically for latent
+#' moderators, probe points are based on the estimated latent mean and
+#' model-implied latent standard deviation.
 #' 
 #' @usage
 #' lav_slopes(
@@ -31,7 +39,7 @@
 #'   line.size = 0.80,
 #'   alpha = 0.20,
 #'   table = TRUE,
-#'   digits = 2,
+#'   digits = 3L,
 #'   modx_n_unique_cutoff = 4L,
 #'   return_data = FALSE
 #' )
@@ -39,17 +47,29 @@
 #' @param fit A fitted 'lavaan' object that includes the product term (required).
 #' @param outcome Character. Name of the dependent variable in \code{fit} (required).
 #' @param pred Character. Name of the focal predictor whose simple slopes are probed (required).
-#' @param modx Character. Name of the moderator (required).
+#' @param modx Character. Name of the moderator. The moderator must appear in
+#' the fitted model as a single numeric variable. General nominal moderators
+#' with more than two categories are not supported.
 #' @param interaction Character. Name of the product term in \code{fit} (e.g., \code{"X_Z"}) (required).
-#' @param data \code{data.frame}. Raw data. If \code{NULL}, the function tries to pull
-#' data from \code{fit} via \code{lavInspect}.
-#' @param modx.values Numeric or character vector. Values or levels of the moderator
-#' at which to compute slopes; derived automatically when \code{NULL}.
-#' @param modx.labels Character vector. Legend/table labels for \code{modx.values}
-#' (default: the character form of \code{modx.values}).
-#' @param pred.range Numeric length-2. Range \code{c(min, max)} for the x-axis;
-#' uses observed range in \code{data} when available, else \code{c(-2, 2)}.
-#' @param conf.level Numeric in (0,1). Confidence level for CIs and ribbons (default: 0.95).
+#' @param data \code{data.frame}. Optional raw data (not needed, retained for backward compatibility). 
+#' The function automatically recovers observed data from \code{fit} when needed.   
+#' @param modx.values Numeric vector of moderator values at which to compute
+#' simple slopes. If \code{NULL} and \code{modx} is observed and numeric, the
+#' function uses mean minus 1 SD, the mean, and mean plus 1 SD for moderators
+#' with more than \code{modx_n_unique_cutoff} unique values, and otherwise
+#' uses the observed numeric values as discrete probe points. If \code{modx}
+#' is latent in a single-group model, the function uses the estimated latent
+#' mean minus 1 latent SD, the latent mean, and the latent mean plus 1 latent
+#' SD. 
+#' @param modx.labels Character vector. Legend and table labels for \code{modx.values}.
+#' By default, the labels are \code{c("-1 SD", "Mean", "+1 SD")} when values are derived as 
+#' mean plus or minus 1 SD, and \code{as.character(modx.values)} otherwise.
+#' @param pred.range Numeric vector of length 2. Range \code{c(min, max)} for the x-axis
+#' for the focal predictor. If \code{NULL} and \code{pred} is observed, the observed 
+#' range recovered from \code{fit} is used. If \code{pred} is latent in a single-group model, 
+#' the function uses the estimated latent mean minus 2 latent SD and the latent mean plus 2 
+#' latent SD. Otherwise, \code{c(-2, 2)} is used.
+#' @param conf.level Numeric in (0,1). Confidence level for Wald confidence intervals and ribbons (default: 0.95).
 #' @param x.label Character. X-axis label (default: \code{pred}).
 #' @param y.label Character. Y-axis label (default: \code{outcome}).
 #' @param legend.title Character. Legend title; if \code{NULL}, the legend shows only levels (default: NULL).
@@ -57,12 +77,12 @@
 #' @param line.size Numeric > 0. Line width (default: 0.80).
 #' @param alpha Numeric in (0,1). Ribbon opacity (default 0.20).
 #' @param table Logical. Print APA-style interaction test and simple-slopes table (default: \code{TRUE}).
-#' @param digits Integer \code{>= 0}. Decimal digits in printed output (default: 2).
+#' @param digits Integer \code{>= 0}. Decimal digits in printed output (default: 3).
 #' @param modx_n_unique_cutoff Integer \code{>= 1}. Threshold for treating a numeric moderator
 #' as continuous and using mean ± SD (default: 4).
 #' @param return_data Logical. If \code{TRUE}, include the plotting data.frame in the returned list (default: FALSE).
 #'
-#' @return A list with elements:
+#' @return A list of class \code{"lav_slopes"} with elements:
 #' \describe{
 #'   \item{\code{plot}}{\code{ggplot} object with lines and confidence ribbons.}
 #'   \item{\code{slope_table}}{Data frame with moderator levels, simple slopes, SE, z, and CI.}
@@ -70,9 +90,26 @@
 #' }
 #'
 #' @section Notes:
-#' Estimates are unstandardized; a standardized beta for the interaction is also reported
-#' for reference. Wald tests assume large-sample normality of estimates.
+#' Estimates are unstandardized; a standardized coefficient for the interaction is
+#' also reported for reference. Wald tests assume large-sample normality of the
+#' parameter estimates. Multigroup fitted models are not supported. 
+#' 
+#' @references
+#' Aiken, L. S., & West, S. G. (1991). \emph{Multiple regression: Testing and
+#' interpreting interactions}. Sage.
 #'
+#' Preacher, K. J., Curran, P. J., & Bauer, D. J. (2006). Computational tools
+#' for probing interactions in multiple linear regression, multilevel modeling,
+#' and latent curve analysis. \emph{Journal of Educational and Behavioral
+#' Statistics}, \emph{31}(4), 437-448.
+#' \doi{10.3102/10769986031004437}
+#'
+#' Rogosa, D. (1980). Comparing nonparallel regression lines.
+#' \emph{Psychological Bulletin}, \emph{88}(2), 307-321.
+#' \doi{10.1037/0033-2909.88.2.307}
+#'
+#' @seealso \code{\link{lav_jn}} for Johnson-Neyman regions of significance.
+#' 
 #' @examples
 #' set.seed(42)
 #' X <- rnorm(100); Z <- rnorm(100); X_Z <- X*Z
@@ -81,16 +118,15 @@
 #' fit <- lavaan::sem("Y ~ X + Z + X_Z", data = dataset)
 #' lav_slopes(
 #' fit = fit, 
-#' data = dataset,
 #' outcome = "Y", 
 #' pred = "X", 
 #' modx = "Z", 
 #' interaction = "X_Z")
 #'
-#' @importFrom lavaan parameterEstimates parTable lavInspect
+#' @importFrom lavaan parameterEstimates parTable lavInspect lavNames
 #' @importFrom stats vcov qnorm sd pnorm
 #' @importFrom ggplot2 ggplot aes geom_line geom_ribbon scale_colour_manual scale_fill_manual labs
-#' @importFrom rlang sym
+#' @importFrom rlang sym %||%
 #' @export
 lav_slopes <- function(
     fit,
@@ -110,7 +146,7 @@ lav_slopes <- function(
     line.size = 0.80,
     alpha = 0.20,
     table = TRUE,
-    digits = 2,
+    digits = 3L,
     modx_n_unique_cutoff = 4L,
     return_data = FALSE
 ) {
@@ -118,50 +154,206 @@ lav_slopes <- function(
   if (missing(interaction) || is.null(interaction))
     stop("'interaction' (product-term name) must be supplied.", call. = FALSE)
   
-# cerca di recuperare i dati!!! perche non funziona?
+  ngroups <- tryCatch(lavaan::lavInspect(fit, "ngroups"), error = function(e) 1L)
+  if (length(ngroups) != 1L || is.na(ngroups)) ngroups <- 1L
+  if (ngroups > 1L) {
+    stop("'lav_slopes' does not currently support multigroup fitted models. Please fit one group at a time.", call. = FALSE)
+  }
+  
+# recupera i dati!!!
   fetch_data <- function(f) {
     out <- tryCatch(lavaan::lavInspect(f, "data"), error = function(e) NULL)
-    if (is.null(out))
+    if (is.null(out)) {
       out <- tryCatch(lavaan::lavInspect(f, "data.original"), error = function(e) NULL)
-    if (is.null(out))
-      out <- tryCatch(as.data.frame(f@Data@X), error = function(e) NULL)
-    out
+    }
+    if (is.null(out)) {
+      out <- tryCatch(f@Data@X, error = function(e) NULL)
+    }
+    if (is.null(out)) {
+      return(NULL)
+    }
+    ov_names <- tryCatch(lavaan::lavNames(f, type = "ov"), error = function(e) NULL)
+    if (is.data.frame(out)) {
+      out <- as.data.frame(out)
+      return(out)
+    }
+    if (is.matrix(out)) {
+      out <- as.data.frame(out)
+      if (!is.null(ov_names) && length(ov_names) == ncol(out)) {
+        names(out) <- ov_names
+      }
+      return(out)
+    }
+    if (is.list(out)) {
+      ok_list <- all(vapply(out, function(x) is.data.frame(x) || is.matrix(x), logical(1)))
+      if (!ok_list) {
+        return(NULL)
+      }
+      group_labels <- tryCatch(lavaan::lavInspect(f, "group.label"), error = function(e) NULL)
+      group_var <- NULL
+      group_call <- tryCatch(f@call$group, error = function(e) NULL)
+      if (!is.null(group_call)) {
+        group_var <- paste(as.character(group_call), collapse = "")
+        group_var <- gsub('^"|"$', "", group_var)
+      }
+      if (is.null(group_var) || length(group_var) != 1L || is.na(group_var) || !nzchar(group_var)) {
+        tmp_group <- tryCatch(f@Options$group, error = function(e) NULL)
+        if (length(tmp_group) == 1L && !is.na(tmp_group) && nzchar(tmp_group)) {
+          group_var <- tmp_group
+        } else {
+          group_var <- NULL
+        }
+      }
+      out_list <- vector("list", length(out))
+      for (g in seq_along(out)) {
+        dg <- out[[g]]
+        if (is.matrix(dg)) {
+          dg <- as.data.frame(dg)
+          if (!is.null(ov_names) && length(ov_names) == ncol(dg)) {
+            names(dg) <- ov_names
+          }
+        } else {
+          dg <- as.data.frame(dg)
+        }
+        if (!is.null(group_var) && nzchar(group_var) && !(group_var %in% names(dg))) {
+          if (!is.null(group_labels) && length(group_labels) >= g) {
+            lab_g <- group_labels[g]
+          } else {
+            lab_g <- g
+          }
+          num_lab <- suppressWarnings(as.numeric(lab_g))
+          if (!is.na(num_lab)) {
+            dg[[group_var]] <- num_lab
+          } else {
+            dg[[group_var]] <- as.character(lab_g)
+          }
+        }
+        out_list[[g]] <- dg
+      }
+      out <- do.call(rbind, out_list)
+      rownames(out) <- NULL
+      return(out)
+    }
+    NULL
   }
-  dat <- data %||% fetch_data(fit)
+  dat <- fetch_data(fit)
   
-# estrai valori moderatori e label 
+  # solo per compatibilita
+  if (is.null(dat) && !is.null(data)) {
+    dat <- as.data.frame(data)
+  }
+  
+  # estrazione pick a point delle latenti in automatico!!!
+  lv_names <- tryCatch(lavaan::lavNames(fit, type = "lv"), error = function(e) character(0))
+  # media e ds dilatente dal modello stimato:
+  prendi_media_sd_latente <- function(fit, lv) {
+    mean_lv <- tryCatch(lavaan::lavInspect(fit, "mean.lv"), error = function(e) NULL)
+    cov_lv  <- tryCatch(lavaan::lavInspect(fit, "cov.lv"), error = function(e) NULL)
+    if (is.list(mean_lv)) {
+      mean_lv <- mean_lv[[1L]]
+    }
+    if (is.list(cov_lv)) {
+      cov_lv <- cov_lv[[1L]]
+    }
+    if (is.matrix(mean_lv) && nrow(mean_lv) >= 1L) {
+      tmp <- as.numeric(mean_lv[1L, ])
+      names(tmp) <- colnames(mean_lv)
+      mean_lv <- tmp
+    }
+    mu <- NA_real_
+    var_lv <- NA_real_
+    if (!is.null(mean_lv) && length(mean_lv) > 0L && lv %in% names(mean_lv)) {
+      mu <- as.numeric(mean_lv[lv])
+    }
+    if (!is.null(cov_lv) && is.matrix(cov_lv)) {
+      rn <- rownames(cov_lv)
+      cn <- colnames(cov_lv)
+      if (!is.null(rn) && !is.null(cn) && lv %in% rn && lv %in% cn) {
+        var_lv <- as.numeric(cov_lv[lv, lv])
+      }
+    }
+    if (!is.finite(mu)) {
+      mu <- 0
+    }
+    if (!is.finite(var_lv) || var_lv < 0) {
+      return(NULL)
+    }
+    list(mean = mu, sd = sqrt(var_lv))
+  }
+# estrai moderatori e label 
   if (is.null(modx.values)) {
-    if (is.null(dat) || !(modx %in% names(dat)))
-      stop("'modx.values' missing and moderator data unavailable.\n",
-           "Supply 'modx.values' or pass raw data via 'data'.", call. = FALSE)
-    z <- dat[[modx]]
-    if (is.numeric(z) && length(unique(z)) > modx_n_unique_cutoff) {
-      m  <- mean(z, na.rm = TRUE); sd <- stats::sd(z, na.rm = TRUE)
-      modx.values <- round(c(m - sd, m, m + sd), 2)
+    # caso 1: moderatore osservato!!!
+    if (!is.null(dat) && modx %in% names(dat)) {
+      z <- dat[[modx]]
+      if (is.numeric(z) && length(unique(z)) > modx_n_unique_cutoff) {
+        m <- mean(z, na.rm = TRUE)
+        s <- sd(z, na.rm = TRUE)
+        modx.values <- round(c(m - s, m, m + s), 2)
+        modx.labels <- modx.labels %||% c("-1 SD", "Mean", "+1 SD")
+      } else {
+        modx.values <- sort(unique(z))
+        modx.labels <- modx.labels %||% as.character(modx.values)
+      }
+      # caso 2: moderatore latente!!!!
+    } else if (modx %in% lv_names) {
+      lv_info <- prendi_media_sd_latente(fit, modx)
+      if (is.null(lv_info)) {
+        stop(
+          "Could not derive latent mean and variance for moderator `", modx, "`. ",
+          "Supply `modx.values` explicitly.",
+          call. = FALSE
+        )
+      }
+      modx.values <- round(
+        c(
+          lv_info$mean - lv_info$sd,
+          lv_info$mean,
+          lv_info$mean + lv_info$sd
+        ),
+        2
+      )
       modx.labels <- modx.labels %||% c("-1 SD", "Mean", "+1 SD")
-      message("Derived modx.values as Mean +/- 1 SD: ",
-              paste(modx.values, collapse = ", "))
+      # caso 3: moderatore non trovato!!!!!!!
     } else {
-      modx.values <- sort(unique(z))
-      modx.labels <- modx.labels %||% as.character(modx.values)
-      message("Derived modx.values from moderator levels: ",
-              paste(modx.labels, collapse = ", "))
+      stop(
+        "`modx` was not found as either an observed or latent variable in `fit`. ",
+        "Supply a valid moderator name or specify `modx.values` explicitly.",
+        call. = FALSE
+      )
     }
   }
   if (!is.null(modx.labels) && length(modx.labels) != length(modx.values))
     stop("'modx.labels' must match length of 'modx.values'.", call. = FALSE)
   modx.labels <- modx.labels %||% as.character(modx.values)
   
-# range del predittore focale
+  if (!is.numeric(modx.values)) {
+    stop(
+      "'modx.values' must be numeric. General nominal moderators with more than two categories are not supported; binary observed moderators must be represented as a single numeric dummy-coded variable.",
+      call. = FALSE
+    )
+  }
+
+# range del predittore focale:
   if (is.null(pred.range)) {
-    if (!is.null(dat) && pred %in% names(dat))
+    if (!is.null(dat) && pred %in% names(dat)) {
       pred.range <- range(dat[[pred]], na.rm = TRUE)
-    else
+    } else if (pred %in% lv_names) {
+      lv_info_pred <- prendi_media_sd_latente(fit, pred)
+      if (!is.null(lv_info_pred)) {
+        pred.range <- c(
+          lv_info_pred$mean - 2 * lv_info_pred$sd,
+          lv_info_pred$mean + 2 * lv_info_pred$sd
+        )
+      } else {
+        pred.range <- c(-2, 2)
+      }
+    } else {
       pred.range <- c(-2, 2)
+    }
   }
   x_seq <- seq(pred.range[1L], pred.range[2L], length.out = 1000L)
   
-# stime dei parametri e vcov
+# stime dei parametri e vcov:
   pe <- lavaan::parameterEstimates(fit, standardized = FALSE)
   pt <- lavaan::parTable(fit)
   vc <- tryCatch(stats::vcov(fit),
@@ -224,7 +416,7 @@ lav_slopes <- function(
   z_crit <- stats::qnorm(1 - (1 - conf.level) / 2)
   slope_tbl <- data.frame(
     Moderator = modx.labels,
-    Z_value   = modx.values,
+    Mod_value = modx.values,
     Slope = NA_real_, SE = NA_real_, z = NA_real_,
     CI_low = NA_real_, CI_high = NA_real_,
     stringsAsFactors = FALSE
@@ -238,16 +430,16 @@ lav_slopes <- function(
     var_slope <- var_b1 + 2 * z0 * cov_b1b3 + (z0 ^ 2) * var_b3
     se_slope  <- sqrt(max(var_slope, 0))
     
-    slope_tbl$Slope[i]   <- slope
-    slope_tbl$SE[i]      <- se_slope
-    slope_tbl$z[i]       <- if (se_slope > 0) slope / se_slope else NA_real_
-    slope_tbl$CI_low[i]  <- slope - z_crit * se_slope
+    slope_tbl$Slope[i] <- slope
+    slope_tbl$SE[i] <- se_slope
+    slope_tbl$z[i] <- if (se_slope > 0) slope / se_slope else NA_real_
+    slope_tbl$CI_low[i] <- slope - z_crit * se_slope
     slope_tbl$CI_high[i] <- slope + z_crit * se_slope
     
     intercept <- p0$est + p2$est * z0
-    var_int   <- max(var_b0 + 2 * z0 * cov_b0b2 + (z0 ^ 2) * var_b2, 0)
+    var_int <- max(var_b0 + 2 * z0 * cov_b0b2 + (z0 ^ 2) * var_b2, 0)
     
-    y_hat   <- intercept + slope * x_seq
+    y_hat <- intercept + slope * x_seq
     se_yhat <- sqrt(pmax((x_seq ^ 2) * var_slope + var_int +
                            2 * x_seq * (cov_b0b1 + z0 * cov_b0b3 +
                                           z0 * cov_b1b2 + (z0 ^ 2) * cov_b2b3), 0))
@@ -320,14 +512,14 @@ lav_slopes <- function(
   )
   
   res <- list(
-    plot         = p,
+    plot = p,
     slope_table  = slope_tbl,
-    labels       = list(outcome = outcome, pred = pred, modx = modx, interaction = interaction),
-    conf.level   = conf.level,
-    digits       = digits,
-    interaction  = interaction_test,
-    print_table  = table,
-    call         = match.call()
+    labels = list(outcome = outcome, pred = pred, modx = modx, interaction = interaction),
+    conf.level = conf.level,
+    digits = digits,
+    interaction = interaction_test,
+    print_table = table,
+    call = match.call()
   )
   if (isTRUE(return_data)) res$plot_data <- plot_df
   
@@ -342,41 +534,105 @@ lav_slopes <- function(
 #' @rdname lav_slopes
 #' @export
 print.lav_slopes <- function(x, ...) {
-  lab <- x$labels; it <- x$interaction; digits <- x$digits; cl <- x$conf.level
-  fmt  <- function(v, k = digits) if (is.na(v)) "NA" else formatC(v, format = "f", digits = k)
-  fmtp <- function(p) ifelse(is.na(p), "NA",
-                             ifelse(p < .001, "< .001", formatC(p, digits = 3, format = "f")))
-  zfmt <- function(z) if (is.na(z)) "NA" else formatC(z, format = "f", digits = max(1, digits + 1))
+  lab <- x$labels
+  it <- x$interaction
+  digits <- x$digits
+  cl <- x$conf.level
   
-  cat("\nInteraction effect (", lab$pred, " * ", lab$modx, " -> ", lab$outcome, "): ",
-      "b = ", fmt(it$b), ", SE = ", fmt(it$se),
-      ", beta = ", fmt(it$beta_std), ", z = ", zfmt(it$z),
-      ", p = ", fmtp(it$p),
-      ", ", sprintf("%.0f%% CI", cl * 100), " [", fmt(it$ci[1L]), ", ", fmt(it$ci[2L]), "]\n",
-      sep = "")
+  fmt <- function(v, k = digits) {
+    if (is.na(v)) "NA" else formatC(v, format = "f", digits = k)
+  }
+  
+  fmtp <- function(p, k = digits) {
+    if (is.na(p)) return("NA")
+    cutoff <- 10^(-k)
+    cutoff_txt <- sub("^0\\.", ".", formatC(cutoff, digits = k, format = "f"))
+    if (p < cutoff) return(paste0("< ", cutoff_txt))
+    out <- formatC(p, digits = k, format = "f")
+    sub("^0\\.", ".", out)
+  }
+  
+  zfmt <- function(z) {
+    if (is.na(z)) "NA" else formatC(z, format = "f", digits = digits)
+  }
+  
+  cat(
+    "\nInteraction effect (", lab$pred, " * ", lab$modx, " -> ", lab$outcome, "): ",
+    "b = ", fmt(it$b), ", SE = ", fmt(it$se),
+    ", beta = ", fmt(it$beta_std), ", z = ", zfmt(it$z),
+    ", p = ", fmtp(it$p),
+    ", ", sprintf("%.0f%% CI", cl * 100), " [", fmt(it$ci[1L]), ", ", fmt(it$ci[2L]), "]\n",
+    sep = ""
+  )
   
   if (isTRUE(x$print_table)) {
     tbl <- x$slope_table
-    cat("\nSimple slopes of", lab$pred, "predicting", lab$outcome,
-        "at levels of", lab$modx, sprintf("(%.0f%% CI)", cl * 100), "\n", sep = " ")
-    cat(rep("-", 72), "\n", sep = "")
-    cat(sprintf("%-18s %-10s %10s %8s %8s %13s\n",
-                "Moderator", "Z_value", "Slope", "SE", "z",
-                sprintf("%.0f%% CI", cl * 100)))
-    cat(rep("-", 72), "\n", sep = "")
+    
+    cat(
+      "\nSimple slopes of", lab$pred, "predicting", lab$outcome,
+      "at levels of", lab$modx, sprintf("(%.0f%% CI)", cl * 100), "\n",
+      sep = " "
+    )
+    
+    mod_txt <- as.character(tbl$Moderator)
+    modval_txt <- as.character(tbl$Mod_value)
+    slope_txt <- vapply(tbl$Slope, fmt, character(1L))
+    se_txt <- vapply(tbl$SE, fmt, character(1L))
+    z_txt <- vapply(tbl$z, zfmt, character(1L))
+    ci_low_txt <- vapply(tbl$CI_low, fmt, character(1L))
+    ci_high_txt <- vapply(tbl$CI_high, fmt, character(1L))
+    ci_txt <- paste0("[", ci_low_txt, ", ", ci_high_txt, "]")
+    
+    hdr_mod <- "Moderator"
+    hdr_modval <- "Mod. value"
+    hdr_slope <- "Slope"
+    hdr_se <- "SE"
+    hdr_z <- "z"
+    hdr_ci <- sprintf("%.0f%% CI", cl * 100)
+    
+    w_mod <- max(nchar(c(hdr_mod, mod_txt), type = "width"))
+    w_modval <- max(nchar(c(hdr_modval, modval_txt), type = "width"))
+    w_slope <- max(nchar(c(hdr_slope, slope_txt), type = "width"))
+    w_se <- max(nchar(c(hdr_se, se_txt), type = "width"))
+    w_z <- max(nchar(c(hdr_z, z_txt), type = "width"))
+    w_ci <- max(nchar(c(hdr_ci, ci_txt), type = "width"))
+    
+    row_fmt <- paste0(
+      "%-", w_mod, "s  ",
+      "%-", w_modval, "s  ",
+      "%",  w_slope, "s  ",
+      "%",  w_se, "s  ",
+      "%",  w_z, "s  ",
+      "%-", w_ci, "s\n"
+    )
+    
+    header_line <- sprintf(
+      row_fmt,
+      hdr_mod, hdr_modval, hdr_slope, hdr_se, hdr_z, hdr_ci
+    )
+    
+    rule_width <- nchar(sub("\n$", "", header_line), type = "width") + 3L
+    rule <- paste(rep("-", rule_width), collapse = "")
+    
+    cat(rule, "\n", sep = "")
+    cat(header_line)
+    cat(rule, "\n", sep = "")
+    
     for (i in seq_len(nrow(tbl))) {
-      zval <- if (is.na(tbl$z[i])) "NA" else formatC(tbl$z[i], format = "f", digits = max(1, digits + 1))
-      cat(sprintf("%-18s %-10s %10s %8s %8s [%s, %s]\n",
-                  as.character(tbl$Moderator[i]),
-                  as.character(tbl$Z_value[i]),
-                  fmt(tbl$Slope[i]),
-                  fmt(tbl$SE[i]),
-                  zval,
-                  fmt(tbl$CI_low[i]),
-                  fmt(tbl$CI_high[i])))
+      cat(sprintf(
+        row_fmt,
+        mod_txt[i],
+        modval_txt[i],
+        slope_txt[i],
+        se_txt[i],
+        z_txt[i],
+        ci_txt[i]
+      ))
     }
-    cat(rep("-", 72), "\n", sep = "")
+    
+    cat(rule, "\n", sep = "")
   }
+  
   cat("\n")
   print(x$plot)
   invisible(x)

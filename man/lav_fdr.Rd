@@ -71,8 +71,6 @@ paths are inherently dependent through shared latent variables, covariance
 matrices, and model constraints.
 }
 \examples{
-\dontshow{if (requireNamespace("lavaan", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-library("lavaan")
 model <- "
 ind60 =~ x1 + x2 + x3
 dem60 =~ y1 + y2 + y3 + y4
@@ -89,5 +87,15 @@ std.lv = TRUE,
 estimator = "MLR", 
 meanstructure = TRUE)
 lav_fdr(fit = fit)
-\dontshow{\}) # examplesIf}
+
+}
+\references{
+Benjamini, Y., & Hochberg, Y. (1995). Controlling the false discovery rate:
+A practical and powerful approach to multiple testing. \emph{Journal of the
+Royal Statistical Society: Series B (Methodological)}, \emph{57}(1),
+289-300. \doi{10.1111/j.2517-6161.1995.tb02031.x}
+
+Benjamini, Y., & Yekutieli, D. (2001). The control of the false discovery
+rate in multiple testing under dependency. \emph{The Annals of Statistics},
+\emph{29}(4), 1165-1188. \doi{10.1214/aos/1013699998}
 }

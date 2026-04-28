@@ -43,3 +43,16 @@
 ## Version 0.4.6
 
 * `lav_fdr()`: fixed table appearance for long predictor or outcome names.   
+
+## Version 0.5.0
+
+* `lav_vif()`: added support for higher-order latent predictors, fixed multigroup handling, improved automatic data recovery.
+* `lav_slopes()`: improved automatic data recovery, added automatic probe values for latent moderators in single-group models, added automatic plotting ranges.
+* `lav_jn()`: Johnson-Neyman regions of significance for continuous moderators.
+* `lav_deltaR2()`: incremental effect sizes (part R^2 and Cohen's f^2) for structural predictors via reduced-model comparisons.
+* `lav_localfit()`: residual-based local fit diagnostics.
+
+## Version 0.5.1
+
+* `lav_localfit()`: fixed import of `utils::head()`.
+ 

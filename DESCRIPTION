@@ -1,7 +1,7 @@
 Package: lavinteract
 Type: Package
 Title: Post-Estimation Utilities for 'lavaan' Fitted Models
-Version: 0.4.6
+Version: 0.5.1
 Authors@R: 
     person(
       "Giuseppe", "Corbelli",
@@ -14,15 +14,15 @@ URL: https://github.com/g-corbelli/lavinteract
 BugReports: https://github.com/g-corbelli/lavinteract/issues
 License: GPL-3
 Encoding: UTF-8
-Imports: lavaan, rlang, ggplot2, stats
+Imports: lavaan, rlang, ggplot2, stats, utils
 Suggests: testthat (>= 3.0.0), knitr, rmarkdown
 Language: en-US
 NeedsCompilation: no
 Maintainer: Giuseppe Corbelli <giuseppe.corbelli@uninettunouniversity.net>
 Config/testthat/edition: 3
 RoxygenNote: 7.3.2
-Packaged: 2026-02-12 13:09:38 UTC; giuse
+Packaged: 2026-04-28 09:19:19 UTC; giuse
 Author: Giuseppe Corbelli [aut, cre] (ORCID:
     <https://orcid.org/0000-0002-2864-3548>)
 Repository: CRAN
-Date/Publication: 2026-02-12 17:00:02 UTC
+Date/Publication: 2026-04-28 14:20:02 UTC
