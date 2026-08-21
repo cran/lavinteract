@@ -18,7 +18,9 @@ lav_cv(
   tol = 0.001,
   window = 50L,
   max_times = 3000L,
-  min_r2_for_pct = 0.05
+  min_r2_for_pct = 0.05,
+  scores = c("bartlett", "regression"),
+  aggregation = c("median", "mean")
 )
 
 \method{print}{lav_cv}(x, digits = x$digits \%||\% 3L, ...)
@@ -48,7 +50,16 @@ lav_cv(
 
 \item{max_times}{Integer. Maximum number of splits when \code{times} = "auto" (default: 3000).}
 
-\item{min_r2_for_pct}{Numeric in (0,1). Minimum in-sample \eqn{R^2} required to compute percent drop; below this, \%_drop is set to NA (default: 0.05).}
+\item{min_r2_for_pct}{Numeric in (0,1). Minimum in-sample \eqn{R^2} required to compute the proportional index \eqn{\Delta\%}; below this, \eqn{\Delta\%} is set to NA (default: 0.05).}
+
+\item{scores}{Character. Factor-score method for latent variables: \code{"bartlett"}
+(default) or \code{"regression"}. The selected method is used for latent outcomes
+and latent predictors.}
+
+\item{aggregation}{Character. Split-wise \eqn{R^2} summary used in printed output and
+overfitting-index calculations: \code{"median"} (default) or \code{"mean"}. Both summaries
+remain available in the returned \code{table}. This option does not affect the
+running-mean auto-stop rule.}
 
 \item{x}{A 'lav_cv' object.}
 
@@ -62,15 +73,20 @@ A list with class 'lav_cv' and elements:
   \item{\code{table}}{Data frame with columns:
     \code{outcome}, \code{type} ("observed" or "latent"),
     \code{r2_in}, \code{r2_cv_mean}, \code{r2_cv_median}, \code{r2_cv_sd},
-    \code{drop_mean_pct}, \code{drop_med_pct}, \code{splits_used}.}
+    \code{drop_mean_abs}, \code{drop_med_abs} (absolute index \eqn{\Delta}),
+    \code{drop_mean_pct}, \code{drop_med_pct} (proportional index \eqn{\Delta\%}),
+    \code{splits_used}.}
   \item{\code{split_matrix}}{Matrix of split-wise test-set \eqn{R^2} values (rows = splits, columns = outcomes).}
   \item{\code{times}}{Character or integer indicating the number of splits used (e.g., \code{"auto(534)"} or \code{500}).}
   \item{\code{train_prop}}{Numeric. Training proportion used in each split.}
   \item{\code{N}}{Integer. Number of rows in the input data.}
   \item{\code{seed}}{Integer. Random seed used to generate the splits.}
+  \item{\code{splits_attempted}}{Integer. Total number of splits attempted, including those discarded for non-convergence or inadmissibility.}
   \item{\code{tol}}{Numeric. Tolerance used by the auto-stop rule.}
   \item{\code{window}}{Integer. Trailing window size for the auto-stop rule.}
-  \item{\code{min_r2_for_pct}}{Numeric. Minimum in-sample \eqn{R^2} required to compute percent drop.}
+  \item{\code{min_r2_for_pct}}{Numeric. Minimum in-sample \eqn{R^2} required to compute \eqn{\Delta\%}.}
+  \item{\code{scores}}{Character. Factor-score method used for latent variables.}
+  \item{\code{aggregation}}{Character. Split-wise \eqn{R^2} summary selected for printing and overfitting-index calculations.}
   \item{\code{call}}{\code{match.call()} of the function call.}
   \item{\code{digits}}{Integer. Default number of digits for printing.}
 }
@@ -82,6 +98,10 @@ leave-group-out CV). At each repetition, the model is refitted on a random
 training subset and evaluated on a disjoint test subset.
 }
 \details{
+A split is retained only if the training-set solution converges and is 
+admissible (no negative estimated variance and no non-positive-definite 
+parameter matrix); splits failing either check are discarded and replaced.
+
 For observed outcomes, \eqn{R^2} is computed by comparing test-set observed values
 with predictions obtained by applying the training-set structural coefficients
 to the test-set predictors.
@@ -92,7 +112,8 @@ measurement model learned on the training set; these scores serve as the
 outcome values. Predictions are then formed by applying the training-set
 structural coefficients to the test-set predictors (including factor scores
 for any latent predictors). \eqn{R^2} is computed by comparing the test-set factor
-scores of the outcome with these predicted scores.
+scores of the outcome with these predicted scores. The score method can be 
+chosen between Bartlett and regression scores.
 
 The in-sample baseline \eqn{R^2} is computed on the full dataset using the same
 metric as in cross-validation: observed outcomes use observed-versus-predicted
@@ -102,10 +123,15 @@ By default, repetitions continue until the running mean \eqn{R^2} for each outco
 stabilizes within a specified tolerance over a trailing window of successful
 splits, or until a maximum number of splits is reached.
 
-The summary table reports the in-sample baseline \eqn{R^2}, the median cross-validated
-\eqn{R^2}, its standard deviation, and the percent drop (baseline vs. median CV) with
-heuristic threshold markers. The percent drop is suppressed when the in-sample
-\eqn{R^2} is very small.
+The summary table reports the in-sample baseline \eqn{R^2}, the selected mean or median
+cross-validated \eqn{R^2}, its standard deviation, the absolute overfitting index
+\eqn{\Delta} (in-sample minus cross-validated \eqn{R^2}), and the proportional
+overfitting index \eqn{\Delta\%} = 100 * (in-sample \eqn{R^2} - CV \eqn{R^2}) /
+in-sample \eqn{R^2}. 
+\eqn{\Delta\%} is near zero when the structural relation generalizes, and 
+exceeds 100% exactly when the cross-validated \eqn{R^2} is negative, that is, 
+when the in-sample \eqn{R^2} does not generalize out of sample. 
+\eqn{\Delta\%} is suppressed when the in-sample \eqn{R^2} is very small.
 }
 \examples{
 set.seed(42)
@@ -120,6 +146,7 @@ dem65 ~ ind60 + dem60
 y1 ~~ y5
 y2 ~~ y6
 "
+\donttest{
 fit <- lavaan::sem(
 model = model, 
 data = lavaan::PoliticalDemocracy,
@@ -129,11 +156,16 @@ meanstructure = TRUE)
 result <- lav_cv(
 fit = fit, 
 data = lavaan::PoliticalDemocracy, 
-times = 5)
+times = 100)
 print(result)
+}
 
 }
 \references{
+Bollen, K. A., & Stine, R. A. (1992). Bootstrapping goodness-of-fit measures
+in structural equation models. \emph{Sociological Methods & Research},
+\emph{21}(2), 205-229. \doi{10.1177/0049124192021002004}
+
 Cudeck, R., & Browne, M. W. (1983). Cross-validation of covariance
 structures. \emph{Multivariate Behavioral Research}, \emph{18}(2), 147-167.
 \doi{10.1207/s15327906mbr1802_2}
@@ -157,5 +189,5 @@ Psychological Science}, \emph{12}(6), 1100-1122.
 }
 \seealso{
 \code{\link[lavaan]{sem}}, \code{\link[lavaan]{lavPredict}},
-  \code{\link[lavaan]{inspect}}
+  \code{\link[lavaan]{lavInspect}}
 }

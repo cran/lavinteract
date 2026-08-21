@@ -55,4 +55,15 @@
 ## Version 0.5.1
 
 * `lav_localfit()`: fixed import of `utils::head()`.
- 
+
+## Version 0.5.2
+
+* `lav_cv()`: factor-score method is now selectable via `scores`, and Bartlett scoring is the new default (previously regression).
+* `lav_cv()`: added `aggregation` to choose the median (default) or mean split-wise summary.
+* `lav_cv()`: the proportional overfitting index (percent drop from in-sample to cross-validated R^2) is now the primary reported metric, shown next to the absolute index (in-sample minus cross-validated R^2).
+* `lav_cv()`: splits are retained only if the training-set solution converges and passes the post-fit admissibility check.
+* `lav_cv()`: added an internal cap on split attempts, with a warning when the requested number of usable splits cannot be reached; the number of attempted splits is now returned.
+
+## Version 0.5.3
+
+* `lav_cv()`: wrapped the example in `\donttest{}` to keep check time within CRAN limits.

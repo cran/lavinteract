@@ -1,7 +1,7 @@
-d5369d356f30e74e7a1607a076867a61 *DESCRIPTION
+1bded1c2cea5e50f90e0681b32c9309c *DESCRIPTION
 06bac8150420d6800d3b1841247757ad *NAMESPACE
-09796857128b187ac71dce4d13880546 *NEWS.md
-9cd3dfe147e990a703504dd9e62676e5 *R/lav_cv.R
+b4d56d13a42b597beb5318d3b164e6c5 *NEWS.md
+fcab8c88796d1425be4df1642bed6a30 *R/lav_cv.R
 18329e0ab30a616d49fb0aa3cf144c50 *R/lav_deltaR2.R
 97e715bdfdc7bcb4da34809f5919085b *R/lav_fdr.R
 566e60ef762840bf7b402ae2cc97b0a0 *R/lav_jn.R
@@ -13,9 +13,9 @@ c9b727f21b75900c115f34b83e87311b *R/lav_localfit.R
 1c33fa5e4e91765b53e2f183e9542bb2 *R/zzz.R
 1dda19015f0aa969acee990c150e3ac9 *build/partial.rdb
 31c6e5ba42738c0b73212cb18c227675 *inst/CITATION
-2c8f67d09a5eff460c0d9ca253ba61b0 *inst/WORDLIST
+1f8c2cd7bd8f6a6646e5251711b6e2ae *inst/WORDLIST
 b50f0cb4bec342292917bc65ab8adcf8 *man/figures/logo.png
-f94d18ccf31b560129cfc33cedd9a841 *man/lav_cv.Rd
+f3c9440217296cd2992dc273e5ca0004 *man/lav_cv.Rd
 8dab912bbaf1108dcc9ec0290c29ba05 *man/lav_deltaR2.Rd
 1dcfd2f635a741157654c27ebb29a829 *man/lav_fdr.Rd
 11bf193587225f864a9476a5e85d29e1 *man/lav_jn.Rd
